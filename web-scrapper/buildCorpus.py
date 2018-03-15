@@ -1,7 +1,7 @@
 import requests, re, io, csv, ast
-import os.path
+#import os.path
 from multiprocessing import Pool
-from urllib import request
+#from urllib import request
 from bs4 import BeautifulSoup
 # import operator
 
@@ -10,7 +10,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Called on each search result, to pull relevant keywords
 def getText(link):
-    # print(" - ", link)
+    print(" - ", link)
     try:
         r = requests.get(link, verify = False, timeout = 5)
     except KeyboardInterrupt:
@@ -23,21 +23,37 @@ def getText(link):
     [b.extract() for b in b(['script', 'link', 'meta', 'style'])]
     text = [b.extract() for b in b(['p', 'div'])]
     output = ""
+    outputList = []
     for excerpt in text:
         found = excerpt.get_text(separator = " ").strip().replace("\xa0", ". ").replace("\n", ". ").replace("\t", ". ").replace("\r", ". ").strip()
-        sentences = found.split(". ")
-        for sentence in sentences:
-            stripped = sentence.strip()
-            if stripped.count(" ") < 5:
-                continue
-            output += stripped + ". "
+        while "  " in found: # Remove double spaces
+            found = found.replace("  ", " ")
+        while ". . " in found:
+            found = found.replace(". . ", ". ")
+        if found.count(" ") > 5:
+            outputList.append(found)
+            
+#        sentences = found.split(". ")
+#        for sentence in sentences:
+#            stripped = sentence.strip()
+#            
+#            while "  " in stripped: # Remove double spaces
+#                stripped = stripped.replace("  ", " ")
+#            while ". . " in stripped:
+#                stripped = stripped.replace(". . ", ". ")
+#                
+#            if stripped.count(" ") < 5:
+#                continue
+#            
+#            output += stripped + ". "
+#            outputList.append(stripped)
 
-    while "  " in output: # Remove double spaces
-        output = output.replace("  ", " ")
-    while ". . " in output:
-        output = output.replace(". . ", ". ")
-
-    return output
+#    while "  " in output: # Remove double spaces
+#        output = output.replace("  ", " ")
+#    while ". . " in output:
+#        output = output.replace(". . ", ". ")
+#    return outputList
+    return outputList
 
 def scrapText(product, pastLinks):
     print("Scrapping reviews for " + product)
@@ -51,19 +67,28 @@ def scrapText(product, pastLinks):
             links.append(linkItem["href"])
             pastLinks.add(linkItem["href"])
     
-    with Pool(10) as p:
-        texts = p.map(getText, links)
+    #with Pool(10) as p:
+    #    texts = p.map(getText, links)
+    texts = []
+    
+    for link in links:
+        texts.append(getText(link))
     
     return texts
 
 def scrapProduct(product, pastLinks):
-    path = "full-reviews/"+re.sub(r'[^a-zA-Z0-9()+]', '_', product)+".txt"
-    if not os.path.isfile(path):
-        texts = scrapText(product, pastLinks)
-        with io.open(path, mode="w", encoding='utf-8') as file:
-            for text in texts:
-                if text != "":
-                    file.write(text+"\n")
+#    path = "full-reviews/"+re.sub(r'[^a-zA-Z0-9()+]', '_', product)+".txt"
+#    if not os.path.isfile(path):
+#        texts = scrapText(product, pastLinks)
+#        with io.open(path, mode="w", encoding='utf-8') as file:
+#            for text in texts:
+#                if text != "":
+#                    file.write(text+"\n")
+#    
+    # get a list of sources. each source has a list of paras/divs
+    texts = scrapText(product, pastLinks)
+    return texts
+    
 
 def scrapProducts():
     products = []
