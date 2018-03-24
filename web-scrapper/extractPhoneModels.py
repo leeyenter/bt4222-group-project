@@ -1,10 +1,10 @@
 import re, time, json
 
-with open("assets/model-fragments.json", "r") as file:
+with open("assets/model-fragments-small.json", "r") as file:
     fragmentLookup = json.load(file)
-with open("assets/model-all-tokens.json", "r") as file:
+with open("assets/model-all-tokens-small.json", "r") as file:
     allModelTokens = json.load(file)
-with open("assets/model-brands.json", "r") as file:
+with open("assets/model-brands-small.json", "r") as file:
     brands = json.load(file)
 
 MAX_FRAGMENT_SIZE=0 # so that we don't have to search till the end of the string
@@ -28,10 +28,10 @@ def getModels(text):
     fragmentsAccepted = {}
     
     words = rgx.findall(text)
-    for i in range(0, len(words)-1):
+    for i in range(0, len(words)):
         if words[i] not in allModelTokens:
             continue
-        for j in range(i+1, min(i+1+MAX_FRAGMENT_SIZE, len(words))):
+        for j in range(i+1, min(i+1+MAX_FRAGMENT_SIZE, len(words)+1)):
             fragment = " ".join(words[i:j])
             if fragment in fragmentLookup:
                 fragmentsFound.add(fragment)
@@ -50,9 +50,9 @@ def getModels(text):
     return modelsFound
 
 def getEntities(text):
-    brandsFound = getBrands(text)
-    modelsFound = getModels(text)
+    lowered = text.lower()
+    brandsFound = getBrands(lowered)
+    modelsFound = getModels(lowered)
+    for model in modelsFound:
+        brandsFound.add(model.split(" ", 1)[0])
     return (brandsFound, modelsFound)
-
-text = "I've been contemplating getting one of these phones but don't know which one to get. I currently own a Huawei p9 lite and it's not bad at all, however I've owned Google products before and been in love with them. My current dilemma is that I'm leaning towards the pixel which costs £729 for 128gb model where as the mate 10 pro is £529 for 128gb. Although I love the pixel 2 XL it doesn't seem worth an extra £200 for the subtle improvements. I'd love to here other people's opinions and experiences."
-print(getEntities(text.lower()))
