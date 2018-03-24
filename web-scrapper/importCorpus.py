@@ -20,7 +20,7 @@ def loadCorpus():
 
 print("Loading spaCy...")
 import spacy
-nlp = spacy.load('en_core_web_sm')
+nlp = spacy.load('en_core_web_md')
 
 FULL_REVIEWS_PATH = "full-reviews"
 
@@ -29,7 +29,7 @@ textList = loadCorpus()
 
 print("Fitting vectorizer...")
 from sklearn.feature_extraction.text import TfidfVectorizer
-vect = TfidfVectorizer(min_df = 0.05, max_df = 0.9)
+vect = TfidfVectorizer(min_df = 0.15)
 vect.fit(textList)
 
 print("Done")
