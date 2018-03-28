@@ -45,7 +45,7 @@ Set up Dashboard
 Step 1:
 
 ```bash
-git clone https://github.com/zuiidea/antd-admin.git
+cd bt4222-dashboard
 ```
 
 Step 2:
