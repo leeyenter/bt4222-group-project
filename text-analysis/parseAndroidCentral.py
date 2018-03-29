@@ -1,18 +1,20 @@
 from extractPhoneModels import getEntities
-import json
+import json, re
 from datetime import datetime, timedelta
 from textblob import TextBlob
+from extractPhrases import extract
 
 res = []
-phoneName = "Samsung Galaxy S7"
+phoneName = "Samsung Galaxy S9 & S9+"
+nameTokens = phoneName.lower().split(" ")
 phoneBrand = phoneName.split(" ", 1)[0].strip()
 phones = {}
 
-with open("json/androidcentral-allphones.json", "r") as file:
+with open("../web-scrapper/json/androidcentral-allphones.json", "r") as file:
     for phone in json.load(file):
         phones[phone["name"]] = phone["shortname"]
 
-with open("json/androidcentral-"+phones[phoneName]+".json") as file:
+with open("../web-scrapper/json/androidcentral-"+phones[phoneName]+".json") as file:
     for line in file:
         res += json.loads(line)
 
@@ -22,6 +24,9 @@ counts = {}
 competitorModels = {}
 competitorBrands = {}
 sentiments = []
+
+phrases = []
+fullText = ""
 
 def parseTime(timeStr):
     return datetime.strptime(timeStr, "%m-%d-%Y %I:%M %p")
@@ -45,10 +50,14 @@ def incrementDateCount(timeObj):
         counts[dateStr] = 1
 
 def parseThread(thread):
-    global startDate, endDate, competitorBrands, competitorModels, sentiments
+    global startDate, endDate, competitorBrands, competitorModels, sentiments, phrases, fullText
     
     for post in thread:
         brands, models = getEntities(post['text'])
+        fullText += post['text'] + ". "
+#        for sentence in post['text'].split("."):
+#            if sentence.count(" ") > 2:
+#                phrases += extract(sentence, nameTokens)
         sentiments.append(TextBlob(post['text']).sentiment.polarity)
         for brand in brands:
             if brand != phoneBrand:
@@ -69,7 +78,7 @@ count = 0
 for thread in res:
     parseThread(thread['thread'])
     count += 1
-    if count % 100 == 0:
+    if count % 2 == 0:
         print(str(round(count*100/len(res), 2)) + "% done")
 
 i = startDate
@@ -99,9 +108,27 @@ competitorModelsDf.columns = ["Count"]
 competitorBrandsDf["Percent"] = competitorBrandsDf.Count / df["No. of posts"].sum()*100
 competitorModelsDf["Percent"] = competitorModelsDf.Count / df["No. of posts"].sum()*100
 
-
+print(" == BRANDS == ")
 print(competitorBrandsDf.head())
+print(" == MODELS == ")
 print(competitorModelsDf.head())
 
+phrases = {}
+sentences = [ x for x in re.split(r"[,?!.]+", fullText) if x.count(" ") > 2]
+count = 0
+for sentence in sentences:
+    for result in extract(sentence, nameTokens):
+        if result['phrase'] in phrases:
+            phrases[result['phrase']].append(result['sentiment'])
+        else:
+            phrases[result['phrase']] = [result['sentiment']]
+    count += 1
+    if count % 200 == 0:
+        print(str(round(count*100/len(sentences), 2)) + "% done")
 
+phraseCount = {}
+for phrase, sentiments in phrases.items():
+    if len(sentiments) > 5:
+        phraseCount[phrase] = len(sentiments)
+    
 plt.hist(sentiments, bins=50)

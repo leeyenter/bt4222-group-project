@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Mar  1 12:19:54 2018
-
-@author: yenter
-"""
-
 from textblob import TextBlob
 import re
 import pandas as pd
@@ -17,9 +10,6 @@ stops = set(stopwords.words("english"))
 from buildCorpus import scrapText
 
 skip = {"–", "after", "for"}
-#startTerms = {"NN", "NNS", "NNP", "CD", "JJ", "NNPS"}
-#endTerms = startTerms.copy()
-#endTerms.update({"POS", "DT", "''", "IN", "POS", "RP"})
 startTerms = {"NN", "NNS", "VBD", "CD", "VBG", "JJ"} # "NNP", "NNPS", 
 containTerms = startTerms.copy()
 containTerms.update({"HYPH", '``', "NNP"})
