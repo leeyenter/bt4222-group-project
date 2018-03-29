@@ -1,4 +1,5 @@
 import requests, json, time
+from multiprocessing import Pool
 
 def fetchComments(children):
     results = []
@@ -65,7 +66,7 @@ def scrapSub(sub):
         results = {}
     
     after = fetchLinks(sub, results, None)
-    for i in range(5):
+    for i in range(10):
         print("Sleeping..")
         time.sleep(30) # in case of any rate limitation
         print("== Page", i+2, "==")
@@ -74,12 +75,7 @@ def scrapSub(sub):
         with open('json/reddit-'+sub+'.json', 'w') as file:
             json.dump(results, file)
 
-scrapSub('phones')
-scrapSub('Smartphones')
-scrapSub('PickMeAPhone')
-scrapSub("PickAnAndroidForMe")
-
-# Other subredits:
-# Smartphones
-# PickMeAPhone
-# PickAnAndroidForMe
+if __name__ == "__main__":
+    subs = ["phones", "Smartphones", "PickMeAPhone", "PickAnAndroidForMe"]
+    with Pool(4) as p:
+        p.map(scrapSub, subs)
