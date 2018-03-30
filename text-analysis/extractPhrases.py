@@ -1,7 +1,7 @@
 from textblob import TextBlob
 import spacy, re
 print("Loading model")
-nlp = spacy.load('en')
+nlp = spacy.load('en_core_web_sm')
 
 from nltk.corpus import stopwords
 stops = set(stopwords.words("english"))
@@ -17,7 +17,7 @@ def pullPhrases(para, productTokens):
     sentiment = blob.sentiment
     
     # Start processing
-    newPara = re.sub("r\(.+\)", "", para).replace("  ", " ").strip()
+    newPara = re.sub(r"\(.+\)", "", para).replace("  ", " ").strip()
     
     pos = nlp(newPara)
     
@@ -49,7 +49,18 @@ def pullPhrases(para, productTokens):
                     phrase += " "
                 phrase += pos[i].text
             
-            # we may also want to check tfidf, to rmeove useless phrases
+            # These parts add quite a bit more time in the processing
+            # Maybe we can just use the tfidf on the full list of phrases to filter
+            if phrase.isnumeric():
+                continue
+            if len(phrase) < 4:
+                continue
+            if "www" in phrase or "http" in phrase or ".com" in phrase:
+                continue
+#            if re.sub(r"[a-zA-Z ]+", "", phrase) == phrase:
+#                continue
+            
+            # we may also want to check tfidf, to remove useless phrases
             
             paraPhrases.append({"phrase": phrase, "sentiment": sentiment.polarity})
                 
