@@ -1,8 +1,13 @@
-import requests, re, json, os
+import requests, re, json
 from bs4 import BeautifulSoup
 from threadManipulator import appendReply, formThreads, printThread
+from datetime import datetime, timedelta
+from multiprocessing import Pool
 
 domain = "https://forum.xda-developers.com"
+
+todayDate = datetime.strftime(datetime.now(), "%d %B %Y")
+ystdDate = datetime.strftime(datetime.now()-timedelta(1), "%d %B %Y")
 
 def pullCategories(phone):
     r = requests.get("https://forum.xda-developers.com/"+phone+"/review", timeout = 10)
@@ -43,7 +48,7 @@ def pullReviews(phone):
             for post in soup.select(".postbit-wrapper"):
                 time = post.select_one(".time")
                 if time is not None:
-                    time = time.text.strip()
+                    time = time.text.replace("Yesterday", ystdDate).replace("Today", todayDate).strip()
                     postID = post.select_one(".postbit-anchor")["id"]
                     quotes = []
                     text = post.select_one(".post-text")
@@ -76,8 +81,9 @@ def pullReviews(phone):
     return categories
 
 def fetchPhone(phone):
-    results = pullReviews(phone)
-    with open('json/xda-'+phone+'.json', 'w') as file:
+    print("Pulling reviews for " + phone['link'])
+    results = pullReviews(phone['link'])
+    with open('json/xda-'+phone['link']+'.json', 'w') as file:
         json.dump(results, file)
         
 def fetchPhoneList():
@@ -112,11 +118,9 @@ def fetchPhoneList():
     
     with open("json/xda-all-phones.json", "w") as file:
         json.dump(phones, file)
-                
-    for phoneDict in phones:
-        if not os.path.isfile("json/xda-"+phoneDict["link"]+".json"):
-            # search the phone
-            print("Fetching", phoneDict["name"])
-            fetchPhone(phoneDict['link'])
+    return phones
 
-fetchPhoneList()
+if __name__ == "__main__":
+    phones = fetchPhoneList()
+    with Pool(8) as p:
+        p.map(fetchPhone, phones)
