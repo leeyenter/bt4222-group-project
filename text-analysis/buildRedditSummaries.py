@@ -1,8 +1,7 @@
 from extractPhoneModels import getEntities
 import json
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 import progressbar
-from textblob import TextBlob
 
 def parseTime(seconds):
     return datetime.fromtimestamp(seconds, timezone.utc)
@@ -36,7 +35,6 @@ def getCompetitors(thread, prevBrands, prevModels):
         postText = thread['title'] + ' '
     postText += thread['text']
     foundBrands, foundModels = getEntities(postText)
-    blob = TextBlob(postText)
     
     brands = prevBrands.copy()
     models = prevModels.copy()
