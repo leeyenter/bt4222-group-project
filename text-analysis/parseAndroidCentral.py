@@ -13,8 +13,8 @@ def parsePhrases(phone):
     phoneLink = phone[1]
     tokens = phoneName.lower().split(' ')
     
-    if os.path.exists('results/phrases/androidcentral/'+phoneLink+'_best.json'):
-        return
+    #if os.path.exists('results/phrases/androidcentral/'+phoneLink+'_best.json'):
+    #    return
     
     fullText = ""
     try:
@@ -27,9 +27,10 @@ def parsePhrases(phone):
         return
     df = extractPhrases.extract(fullText, tokens)
     if df is not None:
-        best, worst = extractPhrases.getTopPhrases(df)
-        best.to_json('results/phrases/androidcentral/' + phoneLink + '_best.json', orient='index')
-        worst.to_json('results/phrases/androidcentral/' + phoneLink + '_worst.json', orient='index')
+        df.to_csv('results/phrases/androidcentral/'+phoneLink+'.csv')
+        #best, worst = extractPhrases.getTopPhrases(df)
+        #best.to_json('results/phrases/androidcentral/' + phoneLink + '_best.json', orient='index')
+        #worst.to_json('results/phrases/androidcentral/' + phoneLink + '_worst.json', orient='index')
 
 if __name__ == '__main__':
     phones = []
@@ -37,5 +38,5 @@ if __name__ == '__main__':
         for phone in json.load(file):
             phones.append((phone["name"], phone["shortname"]))
     
-    with Pool(12) as p:
+    with Pool(8) as p:
         p.map(parsePhrases, phones)

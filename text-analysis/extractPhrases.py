@@ -123,7 +123,8 @@ def extract(text, productTokens):
     df['score'] = df.apply(lambda x: math.log(x['occurences']) * math.log(x['wordScore']+1), axis=1)
     df = df[df.score > 0.6]
     df = df[df.absSentiment > 0]
-    df = df.sort_values('absSentiment', ascending = False).drop(['absSentiment', 'wordScore', 'sentiment'], axis=1)
+    df = df.drop(['absSentiment', 'wordScore'], axis=1)
+    #df = df.sort_values('absSentiment', ascending = False).drop(['absSentiment', 'wordScore', 'sentiment'], axis=1)
     return df
 
 def getTopPhrases(df):

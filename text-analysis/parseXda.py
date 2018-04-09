@@ -8,8 +8,8 @@ def parsePhrases(phone):
     tokens = phoneName.lower().split(' ')
     #brand = phoneName.split(' ', 1)[0]
     
-    if os.path.exists('results/phrases/xda/'+phoneLink+'_best.json'):
-        return
+    #if os.path.exists('results/phrases/xda/'+phoneLink+'_best.json'):
+    #    return
     
     with open('../web-scrapper/json/xda-'+phoneLink+'.json', 'r') as file:
         res = json.load(file)
@@ -25,9 +25,10 @@ def parsePhrases(phone):
     
     df = extractPhrases.extract(fullText, tokens)
     if df is not None:
-        best, worst = extractPhrases.getTopPhrases(df)
-        best.to_json('results/phrases/xda/' + phoneLink + '_best.json', orient='index')
-        worst.to_json('results/phrases/xda/' + phoneLink + '_worst.json', orient='index')
+        df.to_csv('results/phrases/xda/'+phoneLink+'.csv')
+        #best, worst = extractPhrases.getTopPhrases(df)
+        #best.to_json('results/phrases/xda/' + phoneLink + '_best.json', orient='index')
+        #worst.to_json('results/phrases/xda/' + phoneLink + '_worst.json', orient='index')
 
 if __name__ == '__main__':
     phones = []

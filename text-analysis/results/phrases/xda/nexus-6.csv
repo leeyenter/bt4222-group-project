@@ -1,0 +1,7 @@
+,sentiment,occurences,sentimentsSummary,sentimentEdges,score
+ad free app,"[0.2, 0.2]",2,[0.2 0.2 0.2],0.2,1.0746039958863884
+beta update schedule,"[0.2, 0.2, 0.2, 0.2]",4,[0.2 0.2 0.2],0.2,2.0826040689493412
+chroma 6.0.1 using method 1,"[0.5, 0.5]",2,[0.5 0.5 0.5],0.5,0.9034564974525295
+normal wiping methods,"[0.15, 0.15]",2,[0.15 0.15 0.15],0.15,0.8134166856793176
+ota update available message,"[0.4, 0.4]",2,[0.4 0.4 0.4],0.4,1.1982506852643415
+running preview 3,"[0.9, 0.9, 0.9, 0.9]",4,[0.9 0.9 0.9],0.9,1.5100940969495038
