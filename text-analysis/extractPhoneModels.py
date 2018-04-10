@@ -1,10 +1,10 @@
 import re, time, json
 
-with open("assets/model-fragments-small.json", "r") as file:
+with open("assets/model-fragments.json", "r") as file:
     fragmentLookup = json.load(file)
-with open("assets/model-all-tokens-small.json", "r") as file:
+with open("assets/model-all-tokens.json", "r") as file:
     allModelTokens = json.load(file)
-with open("assets/model-brands-small.json", "r") as file:
+with open("assets/model-brands.json", "r") as file:
     brands = json.load(file)
 
 MAX_FRAGMENT_SIZE=0 # so that we don't have to search till the end of the string

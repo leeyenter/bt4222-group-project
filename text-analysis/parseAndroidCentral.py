@@ -16,6 +16,9 @@ def parsePhrases(phone):
     #if os.path.exists('results/phrases/androidcentral/'+phoneLink+'_best.json'):
     #    return
     
+    if os.path.exists('results/phrases/androidcentral/'+ phoneLink + '.csv'):
+        return
+    
     fullText = ""
     try:
         with open('../web-scrapper/json/androidcentral-'+phoneLink+'.json', 'r') as file:

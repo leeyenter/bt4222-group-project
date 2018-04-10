@@ -9,7 +9,11 @@ nlp = spacy.load('en_core_web_sm')
 from nltk.corpus import stopwords
 stops = set(stopwords.words("english"))
 
-skip = {"–", "after", "for", "minutes", "phone", "hours"}
+skip = {"–", "after", "for", "minutes", "phone", "hours", "seconds", "days", "weeks", "months", "times", "second", "time", "minute", "hour", "week", "month", "years", "year", "days", "day", "yrs", "yr", "things"}
+
+with open('assets/model-all-tokens-small.json', 'r') as file:
+    skip.update(json.load(file))
+
 startTerms = {"NN", "NNS", "VBD", "CD", "VBG", "JJ"} # "NNP", "NNPS", 
 containTerms = startTerms.copy()
 containTerms.update({"HYPH", '``', "NNP"})
