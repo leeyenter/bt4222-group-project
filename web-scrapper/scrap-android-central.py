@@ -1,4 +1,4 @@
-import requests, json, time
+import requests, json, time, os
 from bs4 import BeautifulSoup
 from threadManipulator import appendReply
 from multiprocessing import Pool
@@ -101,29 +101,36 @@ def parseForum(link, filename):
 #parseForum("https://forums.androidcentral.com/samsung-galaxy-s9-s9-plus/", "json/androidcentral-samsung-galaxy-s9.json")
 
 def parseForumHelper(phone):
-    #parseForum(phone['link'], "json/androidcentral-"+phone['shortname']+".json")
-    parseForum("https://forums.androidcentral.com/"+phone, "json/androidcentral-"+phone+".json")
+    if os.path.exists('json/androidcentral-'+phone['shortname']+'.json'):
+        return
+    parseForum(phone['link'], "json/androidcentral-"+phone['shortname']+".json")
+    #parseForum("https://forums.androidcentral.com/"+phone, "json/androidcentral-"+phone+".json")
 
 if __name__ == "__main__":
-    # r = requests.get("https://forums.androidcentral.com/")
-    # soup = BeautifulSoup(r.text, "lxml")
-    # forums = soup.select(".forumbit_nopost")
-    # phones = []
-    # for forum in forums:
-        # title = forum.h2
-        # if "Android Phones" in title.text or "Google" in title.text:
-            # subPhones = forum.select(".f2title")
-            # for phone in subPhones:
-                # if "More" in phone.text:
-                    # continue
-                # phones.append({
-                        # "name": phone.text.strip(), 
-                        # "link": phone["href"], 
-                        # 'shortname': phone["href"].replace("https://forums.androidcentral.com/", "").replace("/", "")})
+    with open('json/androidcentral-allphones.json', 'r') as file:
+        phones = json.load(file)
     
-    # with open('json/androidcentral-allphones.json', 'w') as file:
-        # json.dump(phones, file)
-    phones = ["moto-x4", "moto-z2-force", "oneplus-5-5t", "lg-g2", "samsung-galaxy-note-5", "samsung-galaxy-note-7", "samsung-galaxy-s6", "samsung-galaxy-s7-edge", "community-reviews", "buyers-guides"]
+    r = requests.get("https://forums.androidcentral.com/")
+    soup = BeautifulSoup(r.text, "lxml")
+    forums = soup.select(".forumbit_nopost")
+    #phones = []
+    for forum in forums:
+        title = forum.h2
+        if "Android Phones" in title.text or "Google" in title.text:
+            subPhones = forum.select(".f2title")
+            for phone in subPhones:
+                if "More" in phone.text:
+                    continue
+                newPhone = {
+                        "name": phone.text.strip(), 
+                        "link": phone["href"], 
+                        'shortname': phone["href"].replace("https://forums.androidcentral.com/", "").replace("/", "")}
+                if newPhone not in phones:
+                    print("New phone:", phone.text)
+                    phones.append(newPhone)
+    with open('json/androidcentral-allphones.json', 'w') as file:
+        json.dump(phones, file)
+    #phones = ["moto-x4", "moto-z2-force", "oneplus-5-5t", "lg-g2", "samsung-galaxy-note-5", "samsung-galaxy-note-7", "samsung-galaxy-s6", "samsung-galaxy-s7-edge", "community-reviews", "buyers-guides"]
 
     with Pool(6) as p:
         p.map(parseForumHelper, phones)

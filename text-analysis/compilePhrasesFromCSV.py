@@ -1,21 +1,40 @@
-import csv, spacy, ast, os, progressbar
+import csv, spacy, ast, os, progressbar, sys
 import numpy as np
+
+maxInt = sys.maxsize
+decrement = True
+
+while decrement:
+    # decrease the maxInt value by factor 10 
+    # as long as the OverflowError occurs.
+
+    decrement = False
+    try:
+        csv.field_size_limit(maxInt)
+    except OverflowError:
+        maxInt = int(maxInt/10)
+        decrement = True
 
 print('Loading spacy model')
 nlp = spacy.load('en_core_web_lg')
 print('Done')
 
-filenames = os.listdir('results/phrases/xda/')
+filenames = os.listdir('results/phrases/androidcentral/')
 bar = progressbar.ProgressBar(max_value = len(filenames))
 
 counter = 0
 for filename in filenames:
     model = filename.replace('.csv', '')
+    
+    if os.path.exists('results/phrases/androidcentral-json/' + model + '_best.json'):
+        counter += 1
+        bar.update(counter)
+        continue
 
     phrases = []
     phrasePos = {}
     
-    with open('results/phrases/xda/' + filename, 'r') as file:
+    with open('results/phrases/androidcentral/' + filename, 'r', encoding='utf-8') as file:
         reader = csv.reader(file)
         for row in reader:
             if row[0] == '':
@@ -53,6 +72,7 @@ for filename in filenames:
     
     if len(phrases) == 0:
         counter += 1
+        bar.update(counter)
         continue
     
     for phrase in phrases:
@@ -65,8 +85,8 @@ for filename in filenames:
     best = df.sort_values('sentimentEdges', ascending = False).drop(['sentimentEdges', 'score'], axis=1).head(10)
     worst = df.sort_values('sentimentEdges', ascending = True).drop(['sentimentEdges', 'score'], axis=1).head(10)
     
-    best.to_json('results/phrases/xda-json/' + model + '_best.json', orient='records')
-    worst.to_json('results/phrases/xda-json/' + model + '_worst.json', orient='records')
+    best.to_json('results/phrases/androidcentral-json/' + model + '_best.json', orient='records')
+    worst.to_json('results/phrases/androidcentral-json/' + model + '_worst.json', orient='records')
     
     counter += 1
     bar.update(counter)
