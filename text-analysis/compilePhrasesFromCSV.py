@@ -19,14 +19,14 @@ print('Loading spacy model')
 nlp = spacy.load('en_core_web_lg')
 print('Done')
 
-filenames = os.listdir('results/phrases/androidcentral/')
+filenames = os.listdir('results/phrases/gsm/')
 bar = progressbar.ProgressBar(max_value = len(filenames))
 
 counter = 0
 for filename in filenames:
     model = filename.replace('.csv', '')
     
-    if os.path.exists('results/phrases/androidcentral-json/' + model + '_best.json'):
+    if os.path.exists('results/phrases/gsm-json/' + model + '_best.json'):
         counter += 1
         bar.update(counter)
         continue
@@ -34,7 +34,7 @@ for filename in filenames:
     phrases = []
     phrasePos = {}
     
-    with open('results/phrases/androidcentral/' + filename, 'r', encoding='utf-8') as file:
+    with open('results/phrases/gsm/' + filename, 'r', encoding='utf-8') as file:
         reader = csv.reader(file)
         for row in reader:
             if row[0] == '':
@@ -85,8 +85,8 @@ for filename in filenames:
     best = df.sort_values('sentimentEdges', ascending = False).drop(['sentimentEdges', 'score'], axis=1).head(10)
     worst = df.sort_values('sentimentEdges', ascending = True).drop(['sentimentEdges', 'score'], axis=1).head(10)
     
-    best.to_json('results/phrases/androidcentral-json/' + model + '_best.json', orient='records')
-    worst.to_json('results/phrases/androidcentral-json/' + model + '_worst.json', orient='records')
+    best.to_json('results/phrases/gsm-json/' + model + '_best.json', orient='records')
+    worst.to_json('results/phrases/gsm-json/' + model + '_worst.json', orient='records')
     
     counter += 1
     bar.update(counter)
