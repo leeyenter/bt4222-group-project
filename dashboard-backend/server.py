@@ -1,7 +1,11 @@
 from flask import Flask, jsonify
 import json, os
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
+CORS(app)
+
+
 with open('../web-scrapper/all-phones.json', 'r') as file:
     phones = json.load(file)
 
@@ -82,12 +86,14 @@ for model in phones:
     phrases += fetchPhrases('gsm', links['gsm'].replace('.php', ''), 'worst')
     phrases += fetchPhrases('xda', links['xda'], 'worst')
     weaknessesDict[model] = phrases
-    
+
     competitors = []
     competitors += loadCompetitors('androidcentral', links['ac'])
     competitors += loadCompetitors('gsm', links['gsm'].replace('.php', ''))
     competitors += loadCompetitors('xda', links['xda'])
     competitorsDict[model] = competitors
+
+
 
 @app.route("/model/<brand>/")
 def fetchModels(brand):
