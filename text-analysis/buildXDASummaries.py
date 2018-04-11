@@ -10,8 +10,8 @@ def makeSummary(phone):
     phoneName = phone[0]
     phoneURL = phone[1]
     
-    if os.path.exists("results/xda/"+phoneURL+"_categories.json"):
-        return
+#    if os.path.exists("results/xda/"+phoneURL+"_categories.json"):
+#        return
         
     phoneBrand = phoneName.split(" ", 1)[0]
     with open('../web-scrapper/json/xda-'+phoneURL+'.json', 'r') as file:
@@ -98,25 +98,6 @@ def makeSummary(phone):
     countsArr = []
     sentimentsArr = []
     
-    with open("results/xda/"+phoneURL+"_categories.json", "w") as file:
-        json.dump({"categories": categories}, file)
-        
-    try:
-        competitorBrandsDf = pd.DataFrame.from_dict(competitorBrands, orient="index").sort_values(0, ascending=False)
-        competitorBrandsDf.columns = ["count"]
-        competitorBrandsDf["Percent"] = competitorBrandsDf.Count / df["num_posts"].sum()*100
-        competitorBrandsDf.to_json("results/xda/"+phoneURL+"_competitor_brands.json")
-    except:
-        pass
-    
-    try:
-        competitorModelsDf = pd.DataFrame.from_dict(competitorModels, orient="index").sort_values(0, ascending=False)
-        competitorModelsDf.columns = ["count"]
-        competitorModelsDf["Percent"] = competitorModelsDf.Count / df["num_posts"].sum()*100
-        competitorModelsDf.to_json("results/xda/"+phoneURL+"_competitor_models.json")
-    except:
-        pass
-    
     if startDate is None:
         return
     
@@ -134,6 +115,28 @@ def makeSummary(phone):
     df = pd.DataFrame({"date": dateArr, "num_posts": countsArr, "sentiments": sentimentsArr})
     df = df.set_index("date")
     df.to_json("results/xda/"+phoneURL+"_interest.json")
+    
+    with open("results/xda/"+phoneURL+"_categories.json", "w") as file:
+        json.dump({"categories": categories}, file)
+        
+    try:
+        competitorBrandsDf = pd.DataFrame.from_dict(competitorBrands, orient="index").sort_values(0, ascending=False)
+        competitorBrandsDf.columns = ["count"]
+        competitorBrandsDf["percent"] = competitorBrandsDf['count'] / df["num_posts"].sum()*100
+        competitorBrandsDf.to_json("results/xda/"+phoneURL+"_competitor_brands.json")
+    except:
+        pass
+    
+    try:
+        competitorModelsDf = pd.DataFrame.from_dict(competitorModels, orient="index").sort_values(0, ascending=False)
+        competitorModelsDf.columns = ["count"]
+        competitorModelsDf["percent"] = competitorModelsDf['count'] / df["num_posts"].sum()*100
+        competitorModelsDf.to_json("results/xda/"+phoneURL+"_competitor_models.json")
+    except Exception as e:
+        print(e)
+        pass
+    
+
 
 if __name__ == "__main__":
     phones = []
