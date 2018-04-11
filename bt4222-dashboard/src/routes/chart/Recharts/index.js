@@ -1,5 +1,5 @@
 import React from 'react'
-import { Radio } from 'antd'
+import { Radio, Select } from 'antd'
 import { Page } from 'components'
 import ReChartsComponent from './ReChartsComponent'
 import styles from './index.less'
@@ -25,18 +25,22 @@ class Chart extends React.Component {
   constructor () {
     super()
     this.state = {
-      type: '',
+      type: 'androidcentral-Acer',
     }
-    this.handleRadioGroupChange = this.handleRadioGroupChange.bind(this)
+    this.handleChange = this.handleChange.bind(this)
   }
-  handleRadioGroupChange (e) {
+  handleChange (e) {
     this.setState({
-      type: e.target.value,
+      type: e
     })
   }
   render () {
     return (<Page inner>
-      <RadioGroup options={chartList} defaultValue="lineChart" onChange={this.handleRadioGroupChange} />
+      <Select defaultValue="androidcentral-ASUS" style={{ width: 120 }} onChange={this.handleChange}>
+      <Option value="androidcentral-Acer">Acer</Option>
+        <Option value="androidcentral-ASUS">ASUS</Option>
+        <Option value="androidcentral-Blu">Blu</Option>
+      </Select>
       <div className={styles.chart}>
         <ReChartsComponent type={this.state.type} />
       </div>

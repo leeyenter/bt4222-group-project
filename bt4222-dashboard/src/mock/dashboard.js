@@ -104,22 +104,22 @@ const Dashboard = Mock.mock({
     {
       icon: 'pay-circle-o',
       color: color.green,
-      title: 'Online Review',
+      title: 'Number of Posts Crawled',
       number: 2781,
     }, {
       icon: 'team',
       color: color.blue,
-      title: 'New Customers',
+      title: 'Twitter',
       number: 3241,
     }, {
       icon: 'message',
       color: color.purple,
-      title: 'Active Projects',
+      title: 'Facebook',
       number: 253,
     }, {
       icon: 'shopping-cart',
       color: color.red,
-      title: 'Referrals',
+      title: 'XDA Developers',
       number: 4324,
     },
   ],

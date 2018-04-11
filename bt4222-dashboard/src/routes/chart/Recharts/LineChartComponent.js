@@ -16,72 +16,61 @@ const data = [
   {
     name: 'Page A',
     uv: 4000,
-    pv: 2400,
-    amt: 2400,
+    pv: 2400
   }, {
     name: 'Page B',
     uv: 3000,
-    pv: 1398,
-    amt: 2210,
+    pv: 1398
   }, {
     name: 'Page C',
     uv: 2000,
-    pv: 9800,
-    amt: 2290,
+    pv: 9800
   }, {
     name: 'Page D',
     uv: 2780,
-    pv: 3908,
-    amt: 2000,
+    pv: 3908
   }, {
     name: 'Page E',
     uv: 1890,
-    pv: 4800,
-    amt: 2181,
+    pv: 4800
   }, {
     name: 'Page F',
     uv: 2390,
-    pv: 3800,
-    amt: 2500,
+    pv: 3800
   }, {
     name: 'Page G',
     uv: 3490,
-    pv: 4300,
-    amt: 2100,
+    pv: 4300
   },
 ]
 
 const colProps = {
-  lg: 12,
+  lg: 24,
   md: 24,
 }
 
-const SimpleLineChart = () => (
-  <Container>
-    <LineChart data={data}
-      margin={{
-        top: 5,
-        right: 30,
-        left: 20,
-        bottom: 5,
-      }}
-    >
-      <XAxis dataKey="name" />
-      <YAxis />
-      <CartesianGrid strokeDasharray="3 3" />
-      <Tooltip />
-      <Legend />
-      <Line type="monotone"
-        dataKey="pv"
-        stroke="#8884d8"
-        activeDot={{
-          r: 8,
+const SimpleLineChart = (props) => {
+  return (
+    <Container>
+      <LineChart data={props.dataSource}
+        margin={{
+          top: 5,
+          right: 30,
+          left: 20,
+          bottom: 5,
         }}
-      />
-      <Line type="monotone" dataKey="uv" stroke="#82ca9d" />
-    </LineChart>
-  </Container>
-)
+      >
+        <XAxis dataKey="date" />
+        <YAxis />
+        <CartesianGrid strokeDasharray="3 3" />
+        <Tooltip />
+        <Legend />
+        <Line type="monotone" dataKey="val" stroke="#82ca9d" />
+      </LineChart>
+    </Container>
+  )
+
+}
 
 const VerticalLineChart = () => (
   <Container>
@@ -176,7 +165,7 @@ const CustomizedDotLineChart = () => (
   </Container>
 )
 
-const LineChartPage = () => (
+const LineChartPage = (props) => (
   <div className="content-inner">
     <Button type="primary"
       style={{
@@ -189,23 +178,8 @@ const LineChartPage = () => (
     </Button>
     <Row gutter={32}>
       <Col {...colProps}>
-        <Card title="SimpleLineChart">
-          <SimpleLineChart />
-        </Card>
-      </Col>
-      <Col {...colProps}>
-        <Card title="DashedLineChart">
-          <DashedLineChart />
-        </Card>
-      </Col>
-      <Col {...colProps}>
-        <Card title="CustomizedDotLineChart">
-          <CustomizedDotLineChart />
-        </Card>
-      </Col>
-      <Col {...colProps}>
-        <Card title="VerticalLineChart">
-          <VerticalLineChart />
+        <Card title="Popularity VS Phone Sentiment">
+          <SimpleLineChart dataSource={props.dataSource}/>
         </Card>
       </Col>
     </Row>
