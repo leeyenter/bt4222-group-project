@@ -1,5 +1,6 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import json, os
+from socialMediaPredictions import predictImpact
 
 app = Flask(__name__)
 with open('../web-scrapper/all-phones.json', 'r') as file:
@@ -8,6 +9,7 @@ with open('../web-scrapper/all-phones.json', 'r') as file:
 with open('../text-analysis/results/reddit-competitors.json', 'r') as file:
     redditCompetitors = json.load(file)
 
+print("Loading and parsing files")
 brandLookup = {}
 modelLookup = {}
 for phone in phones:
@@ -21,7 +23,7 @@ for phone in phones:
 def loadPopularity(source, link):
     fp = '../text-analysis/results/'+source+'/' + link + '_interest.json'
     if not os.path.exists(fp):
-        print('Cannot find', fp)
+#        print('Cannot find', fp)
         return []
     with open(fp, 'r') as file:
         overview = json.load(file)
@@ -33,7 +35,7 @@ def loadPopularity(source, link):
 def loadSocialMediaPopularity(source, brand, keys):
     fp = source+'-by-brand.json'
     if not os.path.exists(fp):
-        print('Cannot find', fp)
+#        print('Cannot find', fp)
         return []
     with open(fp, 'r') as file:
         try:
@@ -52,7 +54,7 @@ def fetchPhrases(source, link, category):
     result = []
     fp = '../text-analysis/results/phrases/'+source+'-json/' + link + '_' + category + '.json'
     if not os.path.exists(fp):
-        print('Cannot find', fp)
+#        print('Cannot find', fp)
         return result
     with open(fp, 'r') as file:
         for phrase in json.load(file):
@@ -66,7 +68,7 @@ def fetchPhrases(source, link, category):
 def loadCompetitors(source, link):
     fp = '../text-analysis/results/'+source+'/'+link+'_competitor_models.json'
     if not os.path.exists(fp):
-        print('Cannot find', fp)
+#        print('Cannot find', fp)
         return []
     result = []
     with open(fp, 'r') as file:
@@ -133,5 +135,15 @@ def fetchWeaknesses(model):
 def fetchCompetitors(model):
     return jsonify(competitorsDict[model])
 
+@app.route('/predict/', methods=['POST'])
+def fetchPredictions():
+    body = request.get_json()
+    if 'brand' not in body or 'caption' not in body:
+        return jsonify({'ok': False, 'error': 'Malformed body'})
+    elif body['brand'] not in brandLookup:
+        return jsonify({'ok': False, 'error': 'Brand not found'})
+    else:
+        return jsonify(predictImpact(body['caption'], body['brand']))
+
 if __name__ == '__main__':
-    app.run(debug = True, port = 5132)
+    app.run(debug = False, port = 5132)
