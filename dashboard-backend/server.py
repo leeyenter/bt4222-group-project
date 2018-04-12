@@ -9,12 +9,14 @@ with open('../text-analysis/results/reddit-competitors.json', 'r') as file:
     redditCompetitors = json.load(file)
 
 brandLookup = {}
+modelLookup = {}
 for phone in phones:
     brand = phone.split(' ', 1)[0]
     if brand in brandLookup:
         brandLookup[brand].append(phone)
     else:
         brandLookup[brand] = [phone]
+    modelLookup[phone] = brand
 
 def loadPopularity(source, link):
     fp = '../text-analysis/results/'+source+'/' + link + '_interest.json'
@@ -25,7 +27,25 @@ def loadPopularity(source, link):
         overview = json.load(file)
     response = []
     for date in overview['num_posts'].keys():
-        response.append({'date': date, 'posts': overview['num_posts'][date], 'sentiment': overview['sentiments'][date], 'type': source})
+        response.append({'date': date, 'num_posts': overview['num_posts'][date], 'sentiment': overview['sentiments'][date], 'type': source})
+    return response
+
+def loadSocialMediaPopularity(source, brand, keys):
+    fp = source+'-by-brand.json'
+    if not os.path.exists(fp):
+        print('Cannot find', fp)
+        return []
+    with open(fp, 'r') as file:
+        try:
+            overview = json.load(file)[brand]
+        except:
+            return []
+    response = []
+    for date in overview.keys():
+        obj = {'date': date, 'type': source}
+        for key in keys:
+            obj[key] = overview[date][key]
+        response.append(obj)
     return response
 
 def fetchPhrases(source, link, category):
@@ -69,6 +89,9 @@ for model in phones:
     response += loadPopularity('androidcentral', links['ac'])
     response += loadPopularity('gsm', links['gsm'].replace('.php', ''))
     response += loadPopularity('xda', links['xda'])
+    response += loadSocialMediaPopularity('facebook', modelLookup[model], ['comments', 'likes', 'num_posts', 'shares'])
+    response += loadSocialMediaPopularity('twitter', modelLookup[model], ['num_posts', 'favourite_count', 'retweet_count'])
+    response += loadSocialMediaPopularity('instagram', modelLookup[model], ['num_posts', 'comments', 'likes'])
     popularityDict[model] = response
 
     phrases = []
