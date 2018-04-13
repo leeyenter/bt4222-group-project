@@ -88,7 +88,7 @@ strengthsDict = {}
 weaknessesDict = {}
 competitorsDict = {}
 
-with open('../text-analysis/reddit-competitors.json', 'r') as file:
+with open('../text-analysis/results/reddit-competitors.json', 'r') as file:
     redditCompetitors = json.load(file)
 
 for model in phones:
@@ -100,8 +100,7 @@ for model in phones:
     response += loadSocialMediaPopularity('facebook', modelLookup[model], ['comments', 'likes', 'num_posts', 'shares'])
     response += loadSocialMediaPopularity('twitter', modelLookup[model], ['num_posts', 'favourite_count', 'retweet_count'])
     response += loadSocialMediaPopularity('instagram', modelLookup[model], ['num_posts', 'comments', 'likes'])
-    for comp, count in redditCompetitors[model].items():
-        response.append({'competitor': comp, 'count': count, 'type': 'reddit'})
+    response.sort(key=lambda x: x['date'])
     popularityDict[model] = response
 
     phrases = []
@@ -120,6 +119,8 @@ for model in phones:
     competitors += loadCompetitors('androidcentral', links['ac'])
     competitors += loadCompetitors('gsm', links['gsm'].replace('.php', ''))
     competitors += loadCompetitors('xda', links['xda'])
+    for comp, count in redditCompetitors[model].items():
+        competitors.append({'competitor': comp, 'count': count, 'type': 'reddit'})
     competitorsDict[model] = competitors
 
 
