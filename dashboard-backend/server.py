@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 import json, os
 from socialMediaPredictions import predictImpact
+from datetime import datetime, timedelta
 from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
@@ -100,8 +101,41 @@ for model in phones:
     response += loadSocialMediaPopularity('facebook', modelLookup[model], ['comments', 'likes', 'num_posts', 'shares'])
     response += loadSocialMediaPopularity('twitter', modelLookup[model], ['num_posts', 'favourite_count', 'retweet_count'])
     response += loadSocialMediaPopularity('instagram', modelLookup[model], ['num_posts', 'comments', 'likes'])
-    response.sort(key=lambda x: x['date'])
-    popularityDict[model] = response
+    response = sorted(response, key=lambda x: x['date'])
+    
+    startDate = datetime.strptime(response[0]['date'], '%Y-%m-%d')
+    endDate = datetime.strptime(response[len(response)-1]['date'], '%Y-%m-%d')
+    
+    posts = {}
+    sentiments = {}
+    
+    i = startDate
+    while i <= endDate:
+        posts[i.strftime('%Y-%m-%d')] = {'androidcentral': 0, 'gsm': 0, 'xda': 0, 'facebook': 0, 'twitter': 0, 'instagram': 0}
+        sentiments[i.strftime('%Y-%m-%d')] = {'androidcentral': None, 'gsm': None, 'xda': None}
+        i += timedelta(1)
+    
+    for item in response:
+        #posts[item['date']] = {'androidcentral': 0, 'gsm': 0, 'xda': 0, 'facebook': 0, 'twitter': 0, 'instagram': 0}
+        posts[item['date']][item['type']] = item['num_posts']
+    
+    for item in response:
+        if 'sentiment' not in item:
+            continue
+            #sentiments[item['date']] = {'androidcentral': None, 'gsm': None, 'xda': None}
+        sentiments[item['date']][item['type']] = item['sentiment']
+    
+    postsCombined = []
+    sentimentsCombined = []
+    
+    for date, value in posts.items():
+        value['date'] = date
+        postsCombined.append(value)
+    for date, value in sentiments.items():
+        value['date'] = date
+        sentimentsCombined.append(value)
+    
+    popularityDict[model] = {'num_posts': postsCombined, 'sentiments': sentimentsCombined}
 
     phrases = []
     phrases += fetchPhrases('androidcentral', links['ac'], 'best')
@@ -119,8 +153,11 @@ for model in phones:
     competitors += loadCompetitors('androidcentral', links['ac'])
     competitors += loadCompetitors('gsm', links['gsm'].replace('.php', ''))
     competitors += loadCompetitors('xda', links['xda'])
-    for comp, count in redditCompetitors[model].items():
-        competitors.append({'competitor': comp, 'count': count, 'type': 'reddit'})
+    try:
+        for comp, count in redditCompetitors[model].items():
+            competitors.append({'competitor': comp, 'count': count, 'type': 'reddit'})
+    except:
+        pass
     competitorsDict[model] = competitors
 
 
