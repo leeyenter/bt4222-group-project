@@ -167,8 +167,8 @@ for model in phones:
         cDict[competitor['competitor']][competitor['type']] = competitor['count']
     
     competitors = []
-    for model, value in cDict.items():
-        value['model'] = model
+    for competitor, value in cDict.items():
+        value['model'] = competitor
         value['total'] = value['gsm'] + value['reddit'] + value['androidcentral'] + value['xda']
         competitors.append(value)
     
