@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-import json, os, progressbar
+import json, os
 from socialMediaPredictions import predictImpact
 from datetime import datetime, timedelta
 from flask_cors import CORS, cross_origin
@@ -99,11 +99,11 @@ brandsDict = {}
 with open('../text-analysis/results/reddit-competitors.json', 'r') as file:
     redditCompetitors = json.load(file)
 
-bar = progressbar.ProgressBar(max_value = len(phones))
 counter = 0
 for model in phones:
-    bar.update(counter)
     counter += 1
+    if counter%50 == 0:
+        print(round(counter*100/len(phones), 2), "% done")
     links = phones[model]
     response = []
     response += loadPopularity('androidcentral', links['ac'])
