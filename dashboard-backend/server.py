@@ -204,7 +204,7 @@ for model in phones:
         key += 1
     
     competitorsDict[model] = [x for x in sorted(competitors, key=lambda x: x['total'], reverse = True) if x['total'] > 5]
-    brandsDict[model] = sorted(brands, key=lambda x: x['count'], reverse = True)
+    brandsDict[model] = [x for x in sorted(brands, key=lambda x: x['count'], reverse = True) if x['count'] > 5]
 
 
 @app.route("/model/<brand>/")
