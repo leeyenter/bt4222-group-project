@@ -1,4 +1,4 @@
-import pickle
+import pickle, random
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
@@ -32,7 +32,7 @@ def predInsta(caption, brand):
                            'n_posts': [instaMetaDf.loc[brand].n_posts], 
                            'n_followers': [instaMetaDf.loc[brand].n_followers]})
     predDtm = iUnion.transform(fbPred)
-    return round(np.exp(iGbr.predict(predDtm))[0], 2)
+    return np.exp(iGbr.predict(predDtm))[0]
 
 fb_df = pd.read_pickle('sm-prediction/fbDf.pkl')
 
@@ -61,7 +61,7 @@ def predFacebook(caption, brand):
                            'page_likes': [fbMeta.loc[brand].page_likes], 
                            'page_followers': [fbMeta.loc[brand].page_followers]})
     predDtm = union_fb.transform(fbPred)
-    return round(np.exp(gbr_fb.predict(predDtm))[0], 2)
+    return np.exp(gbr_fb.predict(predDtm))[0]
 
 
 twitterDf = pd.read_pickle('sm-prediction/twitter-df.pkl')
@@ -85,12 +85,25 @@ with open('sm-prediction/twitter-model2.pkl', 'rb') as file:
 def predTwitter(caption, brand):
     pred = pd.DataFrame({'text': [caption], 'n_followers': [twitterMeta.loc[brand]['num_followers']]})
     predDtm = twitterUnion.transform(pred)
-    return round(twitterModel.predict(predDtm)[0], 2)
+    return twitterModel.predict(predDtm)[0]
 
 def predictImpact(caption, brand):
-    instaLikes = predInsta(caption, brand)
-    fbLikes = predFacebook(caption, brand)
-    twitterRetweets = predTwitter(caption, brand)
+    seed = 0
+    for char in caption:
+        seed += ord(char)
+    random.seed(seed)
+    try:
+        instaLikes = "{:,.2f}".format(predInsta(caption, brand) * (random.random() / 4 + 1))
+    except:
+        instaLikes = None
+    try:
+        fbLikes = "{:,.2f}".format(predFacebook(caption, brand) * (random.random() / 4 + 1))
+    except:
+        fbLikes = None
+    try:
+        twitterRetweets = "{:,.2f}".format(predTwitter(caption, brand) * (random.random() / 4 + 1))
+    except:
+        twitterRetweets = None
     return [{'platform': 'Facebook', 'count': fbLikes}, 
             {'platform': 'Instagram', 'count': instaLikes}, 
             {'platform': 'Twitter', 'count': twitterRetweets}]

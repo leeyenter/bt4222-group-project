@@ -153,13 +153,26 @@ for model in phones:
     competitors += loadCompetitors('androidcentral', links['ac'])
     competitors += loadCompetitors('gsm', links['gsm'].replace('.php', ''))
     competitors += loadCompetitors('xda', links['xda'])
+    
     try:
         for comp, count in redditCompetitors[model].items():
             competitors.append({'competitor': comp, 'count': count, 'type': 'reddit'})
     except:
         pass
-    competitorsDict[model] = competitors
-
+    
+    cDict = {}
+    for competitor in competitors:
+        if competitor['competitor'] not in cDict:
+            cDict[competitor['competitor']] = {'androidcentral': 0, 'xda': 0, 'gsm': 0, 'reddit': 0, 'total': 0}
+        cDict[competitor['competitor']][competitor['type']] = competitor['count']
+    
+    competitors = []
+    for model, value in cDict.items():
+        value['model'] = model
+        value['total'] = value['gsm'] + value['reddit'] + value['androidcentral'] + value['xda']
+        competitors.append(value)
+    
+    competitorsDict[model] = [x for x in sorted(competitors, key=lambda x: x['total'], reverse = True) if x['total'] > 5]
 
 
 @app.route("/model/<brand>/")
