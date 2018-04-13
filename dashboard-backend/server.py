@@ -88,6 +88,9 @@ strengthsDict = {}
 weaknessesDict = {}
 competitorsDict = {}
 
+with open('../text-analysis/reddit-competitors.json', 'r') as file:
+    redditCompetitors = json.load(file)
+
 for model in phones:
     links = phones[model]
     response = []
@@ -97,6 +100,8 @@ for model in phones:
     response += loadSocialMediaPopularity('facebook', modelLookup[model], ['comments', 'likes', 'num_posts', 'shares'])
     response += loadSocialMediaPopularity('twitter', modelLookup[model], ['num_posts', 'favourite_count', 'retweet_count'])
     response += loadSocialMediaPopularity('instagram', modelLookup[model], ['num_posts', 'comments', 'likes'])
+    for comp, count in redditCompetitors[model].items():
+        response.append({'competitor': comp, 'count': count, 'type': 'reddit'})
     popularityDict[model] = response
 
     phrases = []
