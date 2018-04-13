@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-import json, os
+import json, os, progressbar
 from socialMediaPredictions import predictImpact
 from datetime import datetime, timedelta
 from flask_cors import CORS, cross_origin
@@ -25,6 +25,8 @@ for phone in phones:
     modelLookup[phone] = brand
 
 def loadPopularity(source, link):
+    if link is None:
+        return []
     fp = '../text-analysis/results/'+source+'/' + link + '_interest.json'
     if not os.path.exists(fp):
 #        print('Cannot find', fp)
@@ -55,11 +57,13 @@ def loadSocialMediaPopularity(source, brand, keys):
     return response
 
 def fetchPhrases(source, link, category):
-    result = []
+    if link is None:
+        return []
     fp = '../text-analysis/results/phrases/'+source+'-json/' + link + '_' + category + '.json'
     if not os.path.exists(fp):
 #        print('Cannot find', fp)
-        return result
+        return []
+    result = []
     with open(fp, 'r') as file:
         for phrase in json.load(file):
             phrase['type'] = source
@@ -70,6 +74,8 @@ def fetchPhrases(source, link, category):
     return result
 
 def loadCompetitors(source, link):
+    if link is None:
+        return []
     fp = '../text-analysis/results/'+source+'/'+link+'_competitor_models.json'
     if not os.path.exists(fp):
 #        print('Cannot find', fp)
@@ -88,23 +94,32 @@ popularityDict = {}
 strengthsDict = {}
 weaknessesDict = {}
 competitorsDict = {}
+brandsDict = {}
 
 with open('../text-analysis/results/reddit-competitors.json', 'r') as file:
     redditCompetitors = json.load(file)
 
+bar = progressbar.ProgressBar(max_value = len(phones))
+counter = 0
 for model in phones:
+    bar.update(counter)
+    counter += 1
     links = phones[model]
     response = []
     response += loadPopularity('androidcentral', links['ac'])
-    response += loadPopularity('gsm', links['gsm'].replace('.php', ''))
+    response += loadPopularity('gsm', links['gsm'])
     response += loadPopularity('xda', links['xda'])
-    response += loadSocialMediaPopularity('facebook', modelLookup[model], ['comments', 'likes', 'num_posts', 'shares'])
-    response += loadSocialMediaPopularity('twitter', modelLookup[model], ['num_posts', 'favourite_count', 'retweet_count'])
-    response += loadSocialMediaPopularity('instagram', modelLookup[model], ['num_posts', 'comments', 'likes'])
     response = sorted(response, key=lambda x: x['date'])
+    
+    if len(response) == 0:
+        continue
     
     startDate = datetime.strptime(response[0]['date'], '%Y-%m-%d')
     endDate = datetime.strptime(response[len(response)-1]['date'], '%Y-%m-%d')
+    
+    response += loadSocialMediaPopularity('facebook', modelLookup[model], ['comments', 'likes', 'num_posts', 'shares'])
+    response += loadSocialMediaPopularity('twitter', modelLookup[model], ['num_posts', 'favourite_count', 'retweet_count'])
+    response += loadSocialMediaPopularity('instagram', modelLookup[model], ['num_posts', 'comments', 'likes'])
     
     posts = {}
     sentiments = {}
@@ -116,14 +131,16 @@ for model in phones:
         i += timedelta(1)
     
     for item in response:
+        if item['date'] in posts:
         #posts[item['date']] = {'androidcentral': 0, 'gsm': 0, 'xda': 0, 'facebook': 0, 'twitter': 0, 'instagram': 0}
-        posts[item['date']][item['type']] = item['num_posts']
+            posts[item['date']][item['type']] = item['num_posts']
     
     for item in response:
         if 'sentiment' not in item:
             continue
             #sentiments[item['date']] = {'androidcentral': None, 'gsm': None, 'xda': None}
-        sentiments[item['date']][item['type']] = item['sentiment']
+        if item['date'] in sentiments:
+            sentiments[item['date']][item['type']] = item['sentiment']
     
     postsCombined = []
     sentimentsCombined = []
@@ -139,19 +156,19 @@ for model in phones:
 
     phrases = []
     phrases += fetchPhrases('androidcentral', links['ac'], 'best')
-    phrases += fetchPhrases('gsm', links['gsm'].replace('.php', ''), 'best')
+    phrases += fetchPhrases('gsm', links['gsm'], 'best')
     phrases += fetchPhrases('xda', links['xda'], 'best')
     strengthsDict[model] = phrases
 
     phrases = []
     phrases += fetchPhrases('androidcentral', links['ac'], 'worst')
-    phrases += fetchPhrases('gsm', links['gsm'].replace('.php', ''), 'worst')
+    phrases += fetchPhrases('gsm', links['gsm'], 'worst')
     phrases += fetchPhrases('xda', links['xda'], 'worst')
     weaknessesDict[model] = phrases
 
     competitors = []
     competitors += loadCompetitors('androidcentral', links['ac'])
-    competitors += loadCompetitors('gsm', links['gsm'].replace('.php', ''))
+    competitors += loadCompetitors('gsm', links['gsm'])
     competitors += loadCompetitors('xda', links['xda'])
     
     try:
@@ -161,18 +178,33 @@ for model in phones:
         pass
     
     cDict = {}
+    bDict = {}
     for competitor in competitors:
         if competitor['competitor'] not in cDict:
             cDict[competitor['competitor']] = {'androidcentral': 0, 'xda': 0, 'gsm': 0, 'reddit': 0, 'total': 0}
         cDict[competitor['competitor']][competitor['type']] = competitor['count']
+        brand = competitor['competitor'].split(' ', 1)[0]
+        if brand not in bDict:
+            bDict[brand] = 1
+        else:
+            bDict[brand] += 1
     
     competitors = []
+    key = 1
     for competitor, value in cDict.items():
         value['model'] = competitor
         value['total'] = value['gsm'] + value['reddit'] + value['androidcentral'] + value['xda']
+        value['key'] = key
         competitors.append(value)
+        key += 1
+    brands = []
+    key = 1
+    for brand, count in bDict.items():
+        brands.append({'brand': brand, 'count': count, 'key': key})
+        key += 1
     
     competitorsDict[model] = [x for x in sorted(competitors, key=lambda x: x['total'], reverse = True) if x['total'] > 5]
+    brandsDict[model] = sorted(brands, key=lambda x: x['count'], reverse = True)
 
 
 @app.route("/model/<brand>/")
@@ -195,6 +227,10 @@ def fetchWeaknesses(model):
 @app.route("/competitors/<model>/")
 def fetchCompetitors(model):
     return jsonify(competitorsDict[model])
+
+@app.route("/brands/<model>/")
+def fetchBrands(model):
+    return jsonify(brandsDict[model])
 
 @app.route('/predict/', methods=['POST'])
 def fetchPredictions():
